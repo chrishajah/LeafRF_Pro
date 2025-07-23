@@ -40,6 +40,7 @@ input   [9:0]    wfifo_rcount     ,  //写端口FIFO中的数据量
 input   [9:0]    rfifo_wcount     ,  //读端口FIFO中的数据量
 
 input            rd_req           ,  //用来指示跳转到READ状态,即DDR读出来到读FIFO
+output           wr_end           ,
 output           rd_end           ,  //读完成信号
 output           app_en           ,  //MIG IP核操作使能
 output  [28:0]   app_addr         ,  //DDR4地址
@@ -159,7 +160,7 @@ always @(posedge ui_clk) begin
 end
 
 assign ddr_state_trig = ddr_state_trig_0 || ddr_state_trig_1 || ddr_state_trig_2 || ddr_state_trig_3;
-
+assign wr_end = (state == READ) ? 1'b1 : 1'b0;
 //ddr_state_trig = |{ddr_state_trig_0,ddr_state_trig_0,ddr_state_trig_0,ddr_state_trig_0}
 
 always @(posedge ui_clk) begin
@@ -223,10 +224,13 @@ always @(posedge ui_clk) begin
             READ:begin
                 //if(app_addr_rd == app_addr_wr || app_addr_rd >= RD_ADDR_END)begin
                 if(app_addr_rd == app_addr_wr - 8 || app_addr_rd >= WR_ADDR_END)begin
-                    state <= IDLE; //读完成(读地址等于写地址)
+                    app_addr_rd <= 29'd0;
+                    state <= READ;
+                    //state <= IDLE; //读完成(读地址等于写地址)
                 end
                 else if(app_rdy && app_en_rd)begin
                     app_addr_rd <= app_addr_rd + 8; //读地址加8
+                    state <= READ;
                 end
                 else begin
                     state <= READ;
@@ -245,7 +249,7 @@ ila_10 ila_10 (
 
 
 	.probe0(state), // input wire [3:0]  probe0  
-	.probe1(wr_done), // input wire [0:0]  probe1 
+	.probe1(app_en_rd), // input wire [0:0]  probe1 
 	.probe2(cnt_wr_wait), // input wire [6:0]  probe2 
 	.probe3(app_addr_wr), // input wire [28:0]  probe3 
 	.probe4(app_addr_rd) // input wire [28:0]  probe4

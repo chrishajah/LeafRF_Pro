@@ -52,10 +52,10 @@ begin
 	else
 		case(cnt_0)
             //LMX2594 vco initialation
-          	24'h00_003F : spi_parrallel_data <=24'h00249E;              //78
+          	24'h00_003F : spi_parrallel_data <=24'h4E0003;              //78	
 			24'hF0_1000 : spi_parrallel_data <=24'h4D0000;              //77     
 			24'hF0_2000 : spi_parrallel_data <=24'h4C000C;              //76    24'h4C000C; 
-			24'hF0_3000 : spi_parrallel_data <=24'h4B0940;              //4B_09_40;  //75     
+			24'hF0_3000 : spi_parrallel_data <=24'h4B09C0;              //4B_09_40;  //75     
 			24'hF0_4000 : spi_parrallel_data <=24'h4A0000;              //74   
 			24'hF0_5000 : spi_parrallel_data <=24'h49003F;              //73
 			24'hF0_6000 : spi_parrallel_data <=24'h480001;              //72
@@ -87,14 +87,14 @@ begin
 			24'hF2_0000 : spi_parrallel_data <=24'h2E07FC;               //46
 			24'hF2_1000 : spi_parrallel_data <=24'h2DC0DE;               //45
 			24'hF2_2000 : spi_parrallel_data <=24'h2C1E23;               //44
-			24'hF2_3000 : spi_parrallel_data <=24'h2B00D8;//24'h2B0000;               //43
+			24'hF2_3000 : spi_parrallel_data <=24'h2B0000;//24'h2B0000;               //43
 			24'hF2_4000 : spi_parrallel_data <=24'h2A0000;               //42
 			24'hF2_5000 : spi_parrallel_data <=24'h290000;               //41
 			24'hF2_6000 : spi_parrallel_data <=24'h280000;               //40
 			24'hF2_7000 : spi_parrallel_data <=24'h2703E8;               //39
 			24'hF2_8000 : spi_parrallel_data <=24'h260000;               //38
 			24'hF2_9000 : spi_parrallel_data <=24'h250304;              //37
-			24'hF2_A000 : spi_parrallel_data <=24'h240189;//24'h240080;              //24_00_40  36
+			24'hF2_A000 : spi_parrallel_data <=24'h2403C0;//24'h240080;              //24_00_40  36
 			24'hF2_B000 : spi_parrallel_data <=24'h230004;              //35
 			24'hF2_C000 : spi_parrallel_data <=24'h220000;              //34
 			24'hF2_D000 : spi_parrallel_data <=24'h211E21;              //33
@@ -121,7 +121,7 @@ begin
 			24'hF4_3000 : spi_parrallel_data <=24'h0C5001;              //12 
 			24'hF4_4000 : spi_parrallel_data <=24'h0B0018;              //11 
 			24'hF4_5000 : spi_parrallel_data <=24'h0A10D8;              //10
-			24'hF4_6000 : spi_parrallel_data <=24'h091604;              //9
+			24'hF4_6000 : spi_parrallel_data <=24'h090604;              //9
 			24'hF4_7000 : spi_parrallel_data <=24'h082000;              //8
 			24'hF4_8000 : spi_parrallel_data <=24'h0740B2;              //7
 			24'hF4_9000 : spi_parrallel_data <=24'h06C802;              //6
@@ -130,7 +130,6 @@ begin
 			24'hF4_C000 : spi_parrallel_data <=24'h030642;              //3
 			24'hF4_D000 : spi_parrallel_data <=24'h020500;              //2
 			24'hF4_E000 : spi_parrallel_data <=24'h010808;              //1
-                                                   
 			24'hF9_F615 : spi_parrallel_data <=24'h00241C;              //0       00_24_9C 
 			default: spi_parrallel_data <= spi_parrallel_data;
 		endcase

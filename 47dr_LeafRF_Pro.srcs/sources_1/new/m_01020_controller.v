@@ -62,8 +62,6 @@ begin
 			24'hF0_8000 : spi_parrallel_data <=32'h00010107;              //70 
 			24'hF0_9000 : spi_parrallel_data <=32'h00022A09;              //69
 //			24'hF0_A000 : spi_parrallel_data <=24'h4403E8;              //68  
-		
-
 			24'hF0_A000 : spi_parrallel_data <=32'h6800000E;              //0       00_24_9C 
 			default: spi_parrallel_data <= spi_parrallel_data;
 		endcase

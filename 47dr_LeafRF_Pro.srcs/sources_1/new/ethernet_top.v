@@ -372,8 +372,8 @@ assign rx_core_clk_0 = tx_clk_out_0;
 assign sys_reset = rst_1s_50mhz;
 assign dclk = clk_50m;
 //IO
-assign data_out = rx_axis_tdata_0;
-assign data_out_valid = rx_axis_tvalid_0;
+assign data_out = filtered_data;
+assign data_out_valid = filtered_valid;
 assign clk_out = tx_mii_clk_0;
 
 assign tx_axis_tdata_0 = 'b0;

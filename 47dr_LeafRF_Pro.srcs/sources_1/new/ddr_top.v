@@ -76,6 +76,7 @@ wire [9:0]            wfifo_rcount         ;   //wfifo写进数据计数
 wire [9:0]            rfifo_wcount         ;   //rfifo剩余数据计数
 wire                  rfifo_wren           ;   //从ddr3读出数据写进rfifo的有效使能
 wire                  rd_end               ;   //读完成信号
+wire                  wr_end               ; 
 wire                  init_calib_complete  ;   //DDR4初始化完成
 wire                  wr_fifo_full         ;   //写fifo满信号
 wire                  wr_fifo_empty        ;   //写fifo空信号
@@ -100,6 +101,7 @@ ddr4_rw u_ddr4_rw
 .ddr_state_trig   (ddr_state_trig)       ,
 .rd_req           (rd_req)               ,  //用来指示跳转到READ状态
 .rd_end           (rd_end)               ,  //读完成信号
+.wr_end           (wr_end)               ,
 .app_en           (app_en)               ,  //MIG IP核操作使能
 .app_addr         (app_addr)             ,  //DDR3地址
 .app_addr_wr      (app_addr_wr)          ,
@@ -156,27 +158,27 @@ ddr4_ip ddr4_ip_c0 (
 );
 
 ddr4_fifo_ctrl u_dd4_fifo_ctrl(
-.rst_n(rst_n),
+  .rst_n(rst_n),
 
-.wr_clk                 (wr_clk)                ,
-.rd_clk                 (rd_clk)                ,
-.ui_clk                 (ui_clk)                ,
-.wr_fifo_wren           (wr_en)                 ,
-.wr_fifo_rden           (app_wdf_wren)          ,
-.rd_fifo_wren           (rfifo_wren)            ,    
-.wr_data                (wrdata)                ,//进入写fifo数据
-.rd_fifo_din            (app_rd_data)           ,//读fifo的输入数据
-.wr_fifo_dout           (app_wdf_data)          ,//转时钟域后wrfifo的输出
-.wfifo_rcount           (wfifo_rcount)          ,
-.rfifo_wcount           (rfifo_wcount)          ,
-.data_out               (rddata)                , //读fifo数据(转位宽后)
-.wr_fifo_full           (wr_fifo_full)          , //写fifo满信号
-.wr_fifo_empty          (wr_fifo_empty)         , //写fifo空信号
-.rd_fifo_full           (rd_fifo_full)          , //读fifo满信号
-.rd_fifo_empty          (rd_fifo_empty)         , //读fifo空信号
-.prog_full              (prog_full)             , //读fifo半满信号
-.rd_en                  (rd_en)                 ,
-.rdfifo_data_valid      (rdfifo_data_valid)
+  .wr_clk                 (wr_clk)                ,
+  .rd_clk                 (rd_clk)                ,
+  .ui_clk                 (ui_clk)                ,
+  .wr_fifo_wren           (wr_en)                 ,
+  .wr_fifo_rden           (app_wdf_wren)          ,
+  .rd_fifo_wren           (rfifo_wren)            ,    
+  .wr_data                (wrdata)                ,//进入写fifo数据
+  .rd_fifo_din            (app_rd_data)           ,//读fifo的输入数据
+  .wr_fifo_dout           (app_wdf_data)          ,//转时钟域后wrfifo的输出
+  .wfifo_rcount           (wfifo_rcount)          ,
+  .rfifo_wcount           (rfifo_wcount)          ,
+  .data_out               (rddata)                , //读fifo数据(转位宽后)
+  .wr_fifo_full           (wr_fifo_full)          , //写fifo满信号
+  .wr_fifo_empty          (wr_fifo_empty)         , //写fifo空信号
+  .rd_fifo_full           (rd_fifo_full)          , //读fifo满信号
+  .rd_fifo_empty          (rd_fifo_empty)         , //读fifo空信号
+  .prog_full              (prog_full)             , //读fifo半满信号
+  .rd_en                  (rd_en),
+  .rdfifo_data_valid      (rdfifo_data_valid)
 );
 
 

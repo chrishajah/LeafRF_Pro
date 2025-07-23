@@ -151,3 +151,8 @@ set_property SLEW FAST [get_ports LMK01020_sclk]
 set_property SLEW FAST [get_ports LMK01020_cs]
 set_property PULLUP true [get_ports LMX2594_cs]
 
+#************************* RF PINs *************************************#
+
+set_property PACKAGE_PIN L2 [get_ports RFMC_DAC00_P]
+set_property PACKAGE_PIN L1 [get_ports RFMC_DAC00_N]
+

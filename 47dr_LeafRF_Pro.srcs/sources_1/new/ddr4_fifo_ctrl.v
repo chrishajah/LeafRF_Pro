@@ -30,7 +30,7 @@ module ddr4_fifo_ctrl(
     input  wr_fifo_rden,
     input  rd_fifo_wren,    
     
-    input  [255:0] wr_data,     //写fifo数据
+    input  [255:0]  wr_data,     //写fifo数据
     input  [255:0] rd_fifo_din,//读fifo的输入数据
     output [255:0] wr_fifo_dout,//转时钟域后wrfifo的输出
     output [9:0]   wfifo_rcount,
@@ -89,7 +89,7 @@ module ddr4_fifo_ctrl(
     
     
     
-    assign data_out = (rd_fifo_empty)?64'd0:data_out_o;
+    assign data_out = (rd_fifo_empty)? 63'd0:data_out_o;
 
 
     ila_3 ila_rd (
