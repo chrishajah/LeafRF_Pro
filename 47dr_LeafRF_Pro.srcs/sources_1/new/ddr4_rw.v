@@ -225,8 +225,8 @@ always @(posedge ui_clk) begin
                 //if(app_addr_rd == app_addr_wr || app_addr_rd >= RD_ADDR_END)begin
                 if(app_addr_rd == app_addr_wr - 8 || app_addr_rd >= WR_ADDR_END)begin
                     app_addr_rd <= 29'd0;
-                    state <= READ;
-                    //state <= IDLE; //读完成(读地址等于写地址)
+                    //state <= READ;
+                    state <= IDLE; //读完成(读地址等于写地址)
                 end
                 else if(app_rdy && app_en_rd)begin
                     app_addr_rd <= app_addr_rd + 8; //读地址加8

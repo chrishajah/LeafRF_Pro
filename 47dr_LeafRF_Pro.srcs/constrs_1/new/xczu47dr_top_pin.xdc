@@ -156,3 +156,8 @@ set_property PULLUP true [get_ports LMX2594_cs]
 set_property PACKAGE_PIN L2 [get_ports RFMC_DAC00_P]
 set_property PACKAGE_PIN L1 [get_ports RFMC_DAC00_N]
 
+set_property PACKAGE_PIN AK2 [get_ports RFMC_ADC0_P]
+set_property PACKAGE_PIN AK1 [get_ports RFMC_ADC0_N]
+set_property PACKAGE_PIN AH2 [get_ports RFMC_ADC1_P]
+set_property PACKAGE_PIN AH1 [get_ports RFMC_ADC1_N]
+

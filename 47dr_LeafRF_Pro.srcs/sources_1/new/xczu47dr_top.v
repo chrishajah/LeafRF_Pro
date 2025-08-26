@@ -108,11 +108,11 @@ wire              locked;
 wire [127:0] rddata; //读fifo数据(转位宽后)
 wire [28:0] wr_length;
 wire   ddr_state_trig;
-wire rd_fifo_empty,rd_en,rdfifo_data_valid,rd_fifo_progfull;
+wire rd_fifo_empty,ddr_rd_en,rdfifo_data_valid,rd_fifo_progfull;
 wire clk_sys_ddr4;
 wire clk_adc,clk_dac,pl_clkin;
 wire [127:0]    adc0_data_out,adc1_data_out;
-wire   adc0_data_valid,adc1_data_valid;
+wire   adc0_I_data_valid,adc0_Q_data_valid,adc1_I_data_valid,adc1_Q_data_valid;
 wire LMX2594_cfg_end;
 wire [63:0]     adc_eth_data;
 wire [7:0]      adc_eth_data_length;
@@ -151,7 +151,7 @@ MTS_CLK u_mts_clk(
 clk_wiz_0 u_pl_clkwiz
 (
     // Clock out ports
-    .clk_out1(clk_adc),     // output clk_out1
+    .clk_out1(),     // output clk_out1
     .clk_out2(clk_dac),     // output clk_out2
     .clk_out3(CLK_led),     // output clk_out3
    // Clock in ports
@@ -169,9 +169,12 @@ rfsoc_top u_rfsoc_top(
     .dac0_data_valid(rdfifo_data_valid),
     //.dac1_data_valid(rdfifo_data_valid),
     .adc0_data_out(adc0_data_out),
-    .adc0_data_valid(adc0_data_valid),
     .adc1_data_out(adc1_data_out),
-    .adc1_data_valid(adc1_data_valid),
+    .adc0_I_data_valid(adc0_I_data_valid),
+    .adc0_Q_data_valid(adc0_Q_data_valid),
+    .adc1_I_data_valid(adc1_I_data_valid),
+    .adc1_Q_data_valid(adc1_Q_data_valid),
+
     .DAC0_CLK_N(DAC0_CLK_N),
     .DAC0_CLK_P(DAC0_CLK_P),
     .ADC0_CLK_N(ADC0_CLK_N),
@@ -188,6 +191,7 @@ rfsoc_top u_rfsoc_top(
     .DAC1_OUT_N(RFMC_DAC1_N),
     .DAC1_OUT_P(RFMC_DAC1_P),
 
+    .adc_clk(clk_adc),
     .ADC0_IN_N(RFMC_ADC0_N),
     .ADC0_IN_P(RFMC_ADC0_P),
     .ADC1_IN_N(RFMC_ADC1_N),
@@ -195,6 +199,15 @@ rfsoc_top u_rfsoc_top(
 
 );
 
+
+ila_8 u_adc_ila (
+	.clk(clk_adc), // input wire clk
+	.probe0({adc0_data_out,adc1_data_out}), // input wire [255:0] probe0
+    .probe1(adc0_I_data_valid),
+    .probe2(adc0_Q_data_valid),
+    .probe3(adc1_I_data_valid),
+    .probe4(adc1_Q_data_valid)
+);
 
 
 clk_manage u_clk_manage (
@@ -290,6 +303,7 @@ ethernet_top u_eth_top(
 	.data_in				( mux_data_out			),
 	.data_in_length		    ( mux_data_out_length   ),
 	.tx_en				    ( tx_en_wr 				    ),
+    .mux_sw                 (mux_sw),
 	//输出数据			
 	.clk_out				( clk_eth					),
 	.data_out				( udp_data_out				),
@@ -323,13 +337,64 @@ dac_ram u_dac_ram(
     .out_trig(out_trig)
     );
 
+reg out_trig1,out_trig2,sample_flag;
+reg [31:0] adc_sample_cnt;
+
+always @(posedge clk_adc) begin
+    out_trig1 <= out_trig;
+    out_trig2 <= out_trig1;
+end
+
+wire trig_posedge = out_trig1 & ~out_trig2;  // 检测 out_trig 的上升沿
 
 
+always @(posedge clk_adc) begin
+    if (!sample_flag) begin
+        // 仅在 sample_flag 为 0 时允许触发
+        if (trig_posedge) begin
+            sample_flag <= 1'b1;
+        end
+    end else begin
+        // 保持为 1，直到计数完成
+        if (adc_sample_cnt == 32'd300_000_000) begin
+            sample_flag <= 1'b0;
+        end
+    end
+end
 
+always @(posedge clk_adc) begin
+    if (sample_flag) begin
+        if (adc_sample_cnt < 32'd300_000_000) begin
+            adc_sample_cnt <= adc_sample_cnt + 32'd1;
+        end else begin
+            adc_sample_cnt <= 32'd0;  // 清零，等待下一次触发
+        end
+    end else begin
+        adc_sample_cnt <= 32'd0;
+    end
+end
+
+
+ila_9 u_ila_adc_flag (
+	.clk(clk_adc), // input wire clk
+	.probe0(adc_sample_cnt), // input wire [31:0]  probe0  
+	.probe1(out_trig1), // input wire [0:0]  probe1 
+	.probe2(out_trig2), // input wire [0:0]  probe2 
+	.probe3(sample_flag) // input wire [0:0]  probe3
+);
+
+/*
 vio_0 u_vio_rd(
     .clk(clk_dac),
-    .probe_out0(rd_en)
+    .probe_out0()
 );
+
+
+vio_0 u_vio_wr(
+    .clk(clk_adc),
+    .probe_out0(ddr_wr_en)
+);
+*/
 
 wire [63:0] frame_gen_in;
 wire ddr_rdfifo_data_valid;
@@ -339,12 +404,12 @@ adc_frame_gen u_adc_frame_gen(
     .data_in(frame_gen_in),
     .rd_fifo_empty(rd_fifo_empty),
     .rd_fifo_progfull(rd_fifo_progfull),
-    .total_length(),
+    .total_length(wr_length),
     .rdfifo_data_valid(ddr_rdfifo_data_valid),
     .ddr_state_trig(ddr_state_trig),
     .frame_data(adc_eth_data),
     .frame_data_length(adc_eth_data_length),
-    .rd_en(),
+    .rd_en(ddr_rd_en),
     .tx_en(adc_eth_tx_en),
     .mux_sw(mux_sw),
     .state(),
@@ -372,12 +437,12 @@ ddr4_top u_ddr4_top(
 	.c0_ddr4_ck_c      (c0_ddr4_ck_c    ),//
 	.c0_ddr4_ck_t      (c0_ddr4_ck_t    ), //
 	.app_addr_wr 	   (wr_length),
-	.rd_en			   (),
+	.rd_en			   (ddr_rd_en),
 	.rst_n             (1'b1)  ,  //复位信号 
 	.wr_clk            (clk_adc)  ,  //写fifo写时钟
 	.rd_clk            (clk_eth)  ,  //读fifo读时钟
 	.rd_req            ()  ,  //读数据请求使能，从rfifo里读出来                                                                    
-	.wr_en             ()  ,  //写数据使能信号，表示data_gen模块的输出数据有效即写入wrfifo里
+	.wr_en             (sample_flag)  ,  //写数据使能信号，表示data_gen模块的输出数据有效即写入wrfifo里
 	.wrdata            ({adc0_data_out,adc1_data_out})  ,  //写有效数据 
 	.rddata            (frame_gen_in),    //读有效数据 
 	.rd_fifo_empty	   (rd_fifo_empty),
@@ -388,13 +453,15 @@ ddr4_top u_ddr4_top(
 
 
 reg [15:0]  freq_index_reg;
-wire freq_fifo_rd,prt_fifo_rd;
+wire freq_fifo_rd,prt_fifo_rd,ddr_wr_en;
 
+/*
 vio_serial_rd u_vio_serial_rd (
   .clk(clk_dac),                // input wire clk
   .probe_out0(),  // output wire [0 : 0] probe_out0
   .probe_out1()  // output wire [0 : 0] probe_out1
 );
+*/
 
 wire    [15:0]  prt_serial_out,addr_serial_out;
 wire    prt_serial_out_valid,addr_serial_out_valid;
@@ -412,7 +479,7 @@ cmd_mgmt u_cmd_mgmt(
 	.pulse_repeat_reg(pulse_repeat_wr),
 	.pulse_num_reg(pulse_num_wr),
 	.state(state),
-
+    .rd_en(rd_en),
     .prt_serial_out(prt_serial_out),
     .prt_serial_out_valid(prt_serial_out_valid),
     .addr_serial_out(addr_serial_out),
@@ -421,6 +488,21 @@ cmd_mgmt u_cmd_mgmt(
     .prt_fifo_rd(prt_fifo_rd),
     .freq_index_reg()
 );
+
+wire rd_en_1;
+
+pipe_delay #(
+	.DATA_WIDTH(1),		// DATA_WIDTH = 1,2...
+	.DELAY_CLKS(2)		// DELAY_CLKS = 0,1,...
+) rd_en_dly (
+    .rst(1'b0), 			// input wire rst;    
+    .clk(clk_dac), 			// input wire clk;    
+    .clk_en(1'b1), 	// input wire clk_en;
+    .din(rd_en), 			// input wire [DATA_WIDTH-1:0] din;
+    .dout(rd_en_1)			// output wire [DATA_WIDTH-1:0] dout;
+    );
+
+
 
 wire [3:0]  state_rd;
 leaf_mem_ctrl u_leaf_mem_ctrl(
@@ -432,7 +514,7 @@ leaf_mem_ctrl u_leaf_mem_ctrl(
     .paddr(addr_serial_out[14:0]),
     .paddr_valid(addr_serial_out_valid),
     .pnum(pulse_num_wr),
-    .global_trig(rd_en),
+    .global_trig(rd_en_1),
     .out_trig(out_trig),
     .rd_start_addr(rd_start_addr),
     .rd_end_addr(rd_end_addr),

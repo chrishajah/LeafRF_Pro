@@ -3,6 +3,7 @@ module udp_frame_gen (
     input wire [63:0] data_in,
     input wire [7:0] data_in_length,
     input wire en,
+    input mux_sw,
     output reg [63:0] tx_data,
     output reg tx_start,
     output reg [7:0] tx_data_valid
@@ -83,8 +84,14 @@ module udp_frame_gen (
             end
             6: begin
                 //tx_data <= {IP_DEST[15:0],32'h1F901F90,udp_length};
-                tx_data <= {udp_length[7:0],udp_length[15:8],32'h901F901F,IP_DEST[7:0],IP_DEST[15:8]};
-                state <= 7;
+                if(mux_sw) begin
+                    tx_data <= {udp_length[7:0],udp_length[15:8],32'h911F911F,IP_DEST[7:0],IP_DEST[15:8]};
+                    state <= 7;
+                end else begin
+                    tx_data <= {udp_length[7:0],udp_length[15:8],32'h901F901F,IP_DEST[7:0],IP_DEST[15:8]};
+                    state <= 7;
+                end
+                
             end
             7: begin
                 //tx_data <= {16'h0000,48'h060406040604};

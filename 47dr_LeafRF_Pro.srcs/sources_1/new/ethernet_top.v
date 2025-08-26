@@ -33,6 +33,7 @@ module ethernet_top(
 
     //INSIDE I/O
     input				    clk_in,
+    input                   mux_sw,
 	input	[63:0]		    data_in,
     input   [7:0]           data_in_length,
     input                   tx_en,
@@ -313,6 +314,7 @@ udp_filter u_udp_ftr(
 udp_frame_gen u_udpframegen(
     .clk(rx_core_clk_0),
     .en(tx_en),
+    .mux_sw(mux_sw),
     .data_in(data_in),
     .data_in_length(data_in_length),
     .tx_data(tx_data),

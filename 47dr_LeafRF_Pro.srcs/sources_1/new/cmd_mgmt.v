@@ -35,7 +35,7 @@ module cmd_mgmt(
     output reg [15:0]  pulse_repeat_reg,
     output reg [15:0]  pulse_num_reg,
     output reg [15:0]  freq_index_reg,
-
+    output reg         rd_en,
 
     input         clk_out,
     input         prt_fifo_rd,
@@ -62,6 +62,7 @@ module cmd_mgmt(
                 feedback_data <= 64'h0;
                 feedback_data_length <= 8'h0;
                 feedback_en <= 1'b0;
+                rd_en <= 1'b0;
                 // 修改判断条件为检测上升沿变化
                 if((cmd_word_prev == 32'hFFFFFFFF) && (cmd_word != 32'hFFFFFFFF)) begin
                     cmd_word_reg <= cmd_word;
@@ -92,9 +93,9 @@ module cmd_mgmt(
                     feedback_data_length <= 8'h1;
                     state <= 2; 
                 end else
-                // 3301 模式更改
+                // 3301 信号发射
                 if(cmd_word_reg[31:16] == 16'h3301) begin
-                    func_mode_reg <= cmd_word_reg[15:0];
+                    rd_en <= 1'b1;
                     feedback_en <= 1'b1;
                     feedback_data <= {cmd_word_reg[15:0],pulse_width_reg,pulse_repeat_reg,pulse_num_reg};
                     feedback_data_length <= 8'h1;
@@ -148,6 +149,7 @@ module cmd_mgmt(
                 end
             end
             3: begin
+                rd_en <= 1'b0;
                 feedback_en <= 1'b0;
                 if(send_cnt) begin
                     send_cnt <= send_cnt - 1;

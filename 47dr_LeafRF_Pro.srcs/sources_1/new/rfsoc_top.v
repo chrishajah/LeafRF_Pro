@@ -4,9 +4,12 @@ module rfsoc_top(
     input               dac0_data_valid,
     //input               dac1_data_valid,
     output  [127:0]     adc0_data_out,
-    output              adc0_data_valid,
     output  [127:0]     adc1_data_out,
-    output              adc1_data_valid,
+
+    output              adc0_I_data_valid,
+    output              adc0_Q_data_valid,
+    output              adc1_I_data_valid,
+    output              adc1_Q_data_valid,
 
     input               DAC0_CLK_N,
     input               DAC0_CLK_P,
@@ -33,13 +36,13 @@ module rfsoc_top(
 );
 
 wire [127:0]        reversed_dac0_data_in;
-
-
+wire [63:0]        adc0_I_data_out,adc0_Q_data_out,adc1_I_data_out,adc1_Q_data_out;   
 
 assign reversed_dac0_data_in = {dac0_data_in[15:0],dac0_data_in[31:16],dac0_data_in[47:32],dac0_data_in[63:48],
         dac0_data_in[79:64],dac0_data_in[95:80],dac0_data_in[111:96],dac0_data_in[127:112]};
 
-
+assign adc0_data_out = {adc0_I_data_out,adc0_Q_data_out};
+assign adc1_data_out = {adc1_I_data_out,adc1_Q_data_out};
 
 
 ila_5 u_rf_dac(
@@ -80,6 +83,10 @@ usp_rf_data_converter_0 u_rf_data_converter (
     .s_axi_rvalid(),        // output wire s_axi_rvalid
     .s_axi_rready(1'b0),        // input wire s_axi_rready
     .irq(),                          // output wire irq
+
+
+    .m0_axis_aresetn(1'b1),
+    .m0_axis_aclk(adc_clk),
     .sysref_in_p(SYSREF_P),          // input wire sysref_in_p
     .sysref_in_n(SYSREF_N),          // input wire sysref_in_n
     .vout00_p(DAC0_OUT_P),                // output wire vout00_p
@@ -98,12 +105,22 @@ usp_rf_data_converter_0 u_rf_data_converter (
     .s02_axis_tdata(reversed_dac0_data_in),    // input wire [127 : 0] s02_axis_tdata
     .s02_axis_tvalid(dac0_data_valid),  // input wire s02_axis_tvalid
     .s02_axis_tready(s2_tready),  // output wire s02_axis_tready
-    .m00_axis_tdata(adc0_data_out),    // output wire [127 : 0] m00_axis_tdata
-    .m00_axis_tvalid(adc0_data_valid),  // output wire m00_axis_tvalid
+
+    .m00_axis_tdata(adc0_I_data_out),    // output wire [63 : 0] m00_axis_tdata
+    .m00_axis_tvalid(adc0_I_data_valid),  // output wire m00_axis_tvalid
     .m00_axis_tready(1'b1),  // input wire m00_axis_tready
-    .m02_axis_tdata(adc1_data_out),    // output wire [127 : 0] m02_axis_tdata
-    .m02_axis_tvalid(adc1_data_valid),  // output wire m02_axis_tvalid
-    .m02_axis_tready(1'b1)  // input wire m02_axis_tready
+
+    .m01_axis_tdata(adc0_Q_data_out),    // output wire [63 : 0] m00_axis_tdata
+    .m01_axis_tvalid(adc0_Q_data_valid),  // output wire m00_axis_tvalid
+    .m01_axis_tready(1'b1),  // input wire m00_axis_tready
+
+    .m02_axis_tdata(adc1_I_data_out),    // output wire [63 : 0] m00_axis_tdata
+    .m02_axis_tvalid(adc1_I_data_valid),  // output wire m00_axis_tvalid
+    .m02_axis_tready(1'b1),  // input wire m00_axis_tready.m01_axis_tdata(adc0_Q_data_out),
+
+    .m03_axis_tdata(adc1_Q_data_out),    // output wire [63 : 0] m02_axis_tdata
+    .m03_axis_tvalid(adc1_Q_data_valid),  // output wire m02_axis_tvalid
+    .m03_axis_tready(1'b1)  // input wire m02_axis_tready
 
 );
 
